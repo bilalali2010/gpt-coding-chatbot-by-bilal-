@@ -15,7 +15,7 @@ st.write("Ask me anything and I'll reply using my Hugging Face model.")
 HF_TOKEN = st.secrets["HF_TOKEN"]  # Make sure you added this in Streamlit Secrets
 MODEL_ID = "gpt2"  # Change to your model name on Hugging Face
 
-client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
+client = InferenceClient(model=mistralai/Mistral-7B-Instruct-v0.3, token=HF_TOKEN)
 
 # -------------------------
 # CHAT MEMORY
