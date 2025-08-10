@@ -1,51 +1,48 @@
 import streamlit as st
-import requests
-import os
+from huggingface_hub import InferenceClient
 
-# Hugging Face API Config
-API_URL = "https://api-inference.huggingface.co/models/distilbert-base-uncased-finetuned-sst-2-english"
-headers = {"Authorization": f"Bearer {os.environ['HF_API_KEY']}"}
+# -------------------------
+# STREAMLIT APP CONFIG
+# -------------------------
+st.set_page_config(page_title="My Hugging Face Chatbot", page_icon="🤖")
 
-# Function to send text to Hugging Face Inference API
-def query(payload):
-    response = requests.post(API_URL, headers=headers, json=payload)
-    return response.json()
+st.title("🤖 AI Chatbot")
+st.write("Ask me anything and I'll reply using my Hugging Face model.")
 
-# Streamlit UI
-st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
-st.title("💬 AI Sentiment Chatbot")
+# -------------------------
+# HUGGING FACE CLIENT
+# -------------------------
+HF_TOKEN = st.secrets["HF_TOKEN"]  # Make sure you added this in Streamlit Secrets
+MODEL_ID = "gpt2"  # Change to your model name on Hugging Face
 
-# Chat history
+client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
+
+# -------------------------
+# CHAT MEMORY
+# -------------------------
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# Input from user
-user_input = st.text_input("You:", "")
-
-# When user sends a message
-if st.button("Send"):
-    if user_input.strip():
-        # Add user message
-        st.session_state["messages"].append({"role": "user", "content": user_input})
-
-        # Get AI response from Hugging Face
-        output = query({"inputs": user_input})
-
-        # Extract label + score
-        try:
-            label = output[0]['label']
-            score = round(output[0]['score'], 2)
-            ai_reply = f"Sentiment: **{label}** (Confidence: {score})"
-        except:
-            ai_reply = "Error getting sentiment."
-
-        # Add AI reply
-        st.session_state["messages"].append({"role": "assistant", "content": ai_reply})
-
-# Display conversation
+# Display chat history
 for msg in st.session_state["messages"]:
-    if msg["role"] == "user":
-        st.markdown(f"**You:** {msg['content']}")
-    else:
-        st.markdown(f"**AI:** {msg['content']}")
+    st.chat_message(msg["role"]).write(msg["content"])
 
+# -------------------------
+# USER INPUT
+# -------------------------
+user_input = st.chat_input("Type your message here...")
+
+if user_input:
+    # Add user message to history
+    st.session_state["messages"].append({"role": "user", "content": user_input})
+    st.chat_message("user").write(user_input)
+
+    # Get AI response
+    try:
+        response = client.text_generation(user_input, max_new_tokens=200)
+    except Exception as e:
+        response = f"❌ Error: {e}"
+
+    # Add AI response to history
+    st.session_state["messages"].append({"role": "assistant", "content": response})
+    st.chat_message("assistant").write(response)
