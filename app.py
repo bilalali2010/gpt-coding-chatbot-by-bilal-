@@ -12,10 +12,10 @@ st.write("Ask me anything and I'll reply using my Hugging Face model.")
 # -------------------------
 # HUGGING FACE CLIENT
 # -------------------------
-HF_TOKEN = st.secrets["HF_TOKEN"]  # Make sure you added this in Streamlit Secrets
-MODEL_ID = "gpt2"  # Change to your model name on Hugging Face
+HF_TOKEN = st.secrets["HF_TOKEN"]  # Add HF_TOKEN in Streamlit Secrets
+MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.3"  # You can replace with your own
 
-client = InferenceClient(model=mistralai/Mistral-7B-Instruct-v0.3, token=HF_TOKEN)
+client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
 
 # -------------------------
 # CHAT MEMORY
@@ -23,7 +23,7 @@ client = InferenceClient(model=mistralai/Mistral-7B-Instruct-v0.3, token=HF_TOKE
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# Display chat history
+# Display previous messages
 for msg in st.session_state["messages"]:
     st.chat_message(msg["role"]).write(msg["content"])
 
@@ -39,7 +39,11 @@ if user_input:
 
     # Get AI response
     try:
-        response = client.text_generation(user_input, max_new_tokens=200)
+        completion = client.chat_completion(
+            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state["messages"]],
+            max_tokens=200
+        )
+        response = completion.choices[0].message["content"]
     except Exception as e:
         response = f"❌ Error: {e}"
 
