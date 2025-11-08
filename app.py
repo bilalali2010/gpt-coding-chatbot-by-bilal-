@@ -29,9 +29,11 @@ if "messages" not in st.session_state:
 
 
 # Button to clear chat
+# Button to clear chat
 if st.button("🧹 Clear Chat"):
     st.session_state["messages"] = []
-    st.experimental_rerun()
+    st.rerun()
+
 
 # Display conversation history
 for msg in st.session_state["messages"]:
