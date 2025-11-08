@@ -6,7 +6,7 @@ st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
 st.title("🤖 AI Chatbot")
 
 HF_TOKEN = st.secrets["HF_TOKEN"]
-MODEL_ID = "meta-llama/Meta‑Llama‑3‑8B‑Instruct"
+MODEL_ID = "mistralai/Mistral‑7B-Instruct‑v0.1"
 API_URL = f"https://router.huggingface.co/{MODEL_ID}"
 
 headers = {
