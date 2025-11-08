@@ -13,7 +13,7 @@ st.write("Ask me anything and I'll reply using my Hugging Face model.")
 # HUGGING FACE API
 # -------------------------
 HF_TOKEN = st.secrets["HF_TOKEN"]
-API_URL = "https://api.huggingface.co/v1/chat/completions"
+API_URL = "https://api-inference.huggingface.co/v1/chat/completions"
 MODEL_ID = "meta-llama/Llama-3-8b-instruct"  # ✅ Stable Model
 
 headers = {
