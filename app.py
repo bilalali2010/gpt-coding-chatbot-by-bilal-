@@ -1,21 +1,25 @@
 import streamlit as st
-from huggingface_hub import InferenceClient
+import requests
+import json
 
 # -------------------------
 # STREAMLIT APP CONFIG
 # -------------------------
 st.set_page_config(page_title="My Hugging Face Chatbot", page_icon="🤖")
-
 st.title("🤖 AI Chatbot")
 st.write("Ask me anything and I'll reply using my Hugging Face model.")
 
 # -------------------------
-# HUGGING FACE CLIENT
+# HUGGING FACE API
 # -------------------------
-HF_TOKEN = st.secrets["HF_TOKEN"]  # Add HF_TOKEN in Streamlit Secrets
-MODEL_ID = "mistralai/Mistral-7B-Instruct-v0.3"  # You can replace with your own
+HF_TOKEN = st.secrets["HF_TOKEN"]
+API_URL = "https://api.huggingface.co/v1/chat/completions"
+MODEL_ID = "meta-llama/Llama-3-8b-instruct"  # ✅ Stable Model
 
-client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
+headers = {
+    "Authorization": f"Bearer {HF_TOKEN}",
+    "Content-Type": "application/json"
+}
 
 # -------------------------
 # CHAT MEMORY
@@ -23,7 +27,6 @@ client = InferenceClient(model=MODEL_ID, token=HF_TOKEN)
 if "messages" not in st.session_state:
     st.session_state["messages"] = []
 
-# Display previous messages
 for msg in st.session_state["messages"]:
     st.chat_message(msg["role"]).write(msg["content"])
 
@@ -33,20 +36,23 @@ for msg in st.session_state["messages"]:
 user_input = st.chat_input("Type your message here...")
 
 if user_input:
-    # Add user message to history
+    # Display and store user message
     st.session_state["messages"].append({"role": "user", "content": user_input})
     st.chat_message("user").write(user_input)
 
-    # Get AI response
+    payload = {
+        "model": MODEL_ID,
+        "messages": st.session_state["messages"],
+        "max_tokens": 300,
+        "temperature": 0.8
+    }
+
     try:
-        completion = client.chat_completion(
-            messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state["messages"]],
-            max_tokens=200
-        )
-        response = completion.choices[0].message["content"]
+        res = requests.post(API_URL, headers=headers, data=json.dumps(payload))
+        result = res.json()
+        response = result["choices"][0]["message"]["content"]
     except Exception as e:
         response = f"❌ Error: {e}"
 
-    # Add AI response to history
     st.session_state["messages"].append({"role": "assistant", "content": response})
     st.chat_message("assistant").write(response)
